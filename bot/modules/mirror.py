@@ -11,7 +11,7 @@ from html import escape
 from telegram.ext import CommandHandler
 from telegram import InlineKeyboardMarkup
 
-from bot import Interval, INDEX_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, BUTTON_SIX_NAME, BUTTON_SIX_URL, VIEW_LINK, dispatcher, DOWNLOAD_DIR, download_dict, download_dict_lock, LOGGER, DB_URI, INCOMPLETE_TASK_NOTIFIER
+from bot import Interval, INDEX_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, BUTTON_SIX_NAME, BUTTON_SIX_URL, VIEW_LINK, dispatcher, DOWNLOAD_DIR, download_dict, download_dict_lock, LOGGER
 
 from bot.modules.helper_funcs.mirror_helpers.bot_utils import is_url, is_gdtot_link, is_unified_link, is_udrive_link, is_sharer_link, is_sharedrive_link, is_filepress_link, is_gdrive_link, get_content_type
 from bot.modules.helper_funcs.mirror_helpers.fs_utils import get_base_name, get_path_size, clean_download
@@ -28,7 +28,6 @@ from bot.modules.helper_funcs.mirror_helpers.bot_commands import BotCommands
 from bot.modules.helper_funcs.mirror_helpers.filters import CustomFilters
 from bot.modules.helper_funcs.mirror_helpers.message_utils import sendMessage, sendMarkup, delete_all_messages,update_all_messages
 from bot.modules.helper_funcs.mirror_helpers.button_build import ButtonMaker
-from bot.modules.helper_funcs.mirror_helpers.db_handler import DbManger
 
 
 class MirrorListener:
@@ -51,17 +50,9 @@ class MirrorListener:
             delete_all_messages()
         except IndexError:
             pass
-
+  
     def onDownloadStart(self):
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-            DbManger().add_incomplete_task(
-                self.message.chat.id, self.message.link, self.tag)
-
-
-    def onDownloadStart(self):
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-            DbManger().add_incomplete_task(
-                self.message.chat.id, self.message.link, self.tag)
+        pass
 
     def onDownloadComplete(self,new_name=None):
         with download_dict_lock:
@@ -116,12 +107,7 @@ class MirrorListener:
         else:
             update_all_messages()
 
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-            DbManger().rm_complete_task(self.message.link)
-
     def onUploadComplete(self, link: str, size, files, folders, typ, name: str):
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-            DbManger().rm_complete_task(self.message.link)
         msg = f"<b>Name: </b><code>{escape(name)}</code>\n\n<b>Size: </b>{size}"
         if self.isLeech:
             msg += f"\n<b>Total Files: </b>{folders}"
@@ -170,9 +156,7 @@ class MirrorListener:
                 buttons.buildbutton(f"{BUTTON_FIVE_NAME}", f"{BUTTON_FIVE_URL}")
             if BUTTON_SIX_NAME is not None and BUTTON_SIX_URL is not None:
                 buttons.buildbutton(f"{BUTTON_SIX_NAME}", f"{BUTTON_SIX_URL}")
-            sendMarkup(
-                msg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2))
-            )
+            sendMarkup(msg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
         clean_download(f"{DOWNLOAD_DIR}{self.uid}")
         with download_dict_lock:
             try:
@@ -200,19 +184,8 @@ class MirrorListener:
         else:
             update_all_messages()
 
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-            DbManger().rm_complete_task(self.message.link)
 
-
-def _mirror(
-    bot,
-    message,
-    isZip=False,
-    extract=False,
-    isQbit=False,
-    isLeech=False,
-    pswd=None,
-    multi=0):
+def _mirror(bot, message, isZip=False, extract=False, isQbit=False, isLeech=False, pswd=None, multi=0):
     mesg = message.text.split("\n")
     message_args = mesg[0].split(" ", maxsplit=1)
     name_args = mesg[0].split("|", maxsplit=1)

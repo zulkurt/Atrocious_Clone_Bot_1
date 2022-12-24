@@ -1,11 +1,10 @@
 from telegram.ext import CommandHandler
 
-from bot import AUTHORIZED_CHATS, SUDO_USERS, dispatcher, DB_URI
+from bot import AUTHORIZED_CHATS, SUDO_USERS, dispatcher
 
 from bot.modules.helper_funcs.mirror_helpers.message_utils import sendMessage
 from bot.modules.helper_funcs.mirror_helpers.filters import CustomFilters
 from bot.modules.helper_funcs.mirror_helpers.bot_commands import BotCommands
-from bot.modules.helper_funcs.mirror_helpers.db_handler import DbManger
 
 
 def authorize(update, context):
@@ -17,9 +16,6 @@ def authorize(update, context):
         user_id = int(message_[1])
         if user_id in AUTHORIZED_CHATS:
             msg = "User Already Authorized!"
-        elif DB_URI is not None:
-            msg = DbManger().user_auth(user_id)
-            AUTHORIZED_CHATS.add(user_id)
         else:
             AUTHORIZED_CHATS.add(user_id)
             msg = "User Authorized"
@@ -28,9 +24,6 @@ def authorize(update, context):
         chat_id = update.effective_chat.id
         if chat_id in AUTHORIZED_CHATS:
             msg = "Chat Already Authorized!"
-        elif DB_URI is not None:
-            msg = DbManger().user_auth(chat_id)
-            AUTHORIZED_CHATS.add(chat_id)
         else:
             AUTHORIZED_CHATS.add(chat_id)
             msg = "Chat Authorized"
@@ -39,9 +32,6 @@ def authorize(update, context):
         user_id = reply_message.from_user.id
         if user_id in AUTHORIZED_CHATS:
             msg = "User Already Authorized!"
-        elif DB_URI is not None:
-            msg = DbManger().user_auth(user_id)
-            AUTHORIZED_CHATS.add(user_id)
         else:
             AUTHORIZED_CHATS.add(user_id)
             msg = "User Authorized"
@@ -97,9 +87,6 @@ def addSudo(update, context):
         user_id = int(message_[1])
         if user_id in SUDO_USERS:
             msg = "Already Sudo!"
-        elif DB_URI is not None:
-            msg = DbManger().user_addsudo(user_id)
-            SUDO_USERS.add(user_id)
         else:
             SUDO_USERS.add(user_id)
             msg = "Promoted as Sudo"
@@ -110,9 +97,6 @@ def addSudo(update, context):
         user_id = reply_message.from_user.id
         if user_id in SUDO_USERS:
             msg = "Already Sudo!"
-        elif DB_URI is not None:
-            msg = DbManger().user_addsudo(user_id)
-            SUDO_USERS.add(user_id)
         else:
             SUDO_USERS.add(user_id)
             msg = "Promoted as Sudo"
@@ -127,10 +111,7 @@ def removeSudo(update, context):
     if len(message_) == 2:
         user_id = int(message_[1])
         if user_id in SUDO_USERS:
-            if DB_URI is not None:
-                msg = DbManger().user_rmsudo(user_id)
-            else:
-                msg = "Demoted"
+            msg = "Demoted"
             SUDO_USERS.remove(user_id)
         else:
             msg = "Not sudo user to demote!"
@@ -139,10 +120,7 @@ def removeSudo(update, context):
     else:
         user_id = reply_message.from_user.id
         if user_id in SUDO_USERS:
-            if DB_URI is not None:
-                msg = DbManger().user_rmsudo(user_id)
-            else:
-                msg = "Demoted"
+            msg = "Demoted"
             SUDO_USERS.remove(user_id)
         else:
             msg = "Not sudo user to demote!"
@@ -156,40 +134,14 @@ def sendAuthChats(update, context):
     sendMessage(
         f"<b><u>Authorized Chats:</u></b>\n{user}\n<b><u>Sudo Users:</u></b>\n{sudo}",
         context.bot,
-        update.message,
-    )
+        update.message)
 
 
-send_auth_handler = CommandHandler(
-    command=BotCommands.AuthorizedUsersCommand,
-    callback=sendAuthChats,
-    filters=CustomFilters.owner_filter | CustomFilters.sudo_user,
-    run_async=True,
-)
-authorize_handler = CommandHandler(
-    command=BotCommands.AuthorizeCommand,
-    callback=authorize,
-    filters=CustomFilters.owner_filter | CustomFilters.sudo_user,
-    run_async=True,
-)
-unauthorize_handler = CommandHandler(
-    command=BotCommands.UnAuthorizeCommand,
-    callback=unauthorize,
-    filters=CustomFilters.owner_filter | CustomFilters.sudo_user,
-    run_async=True,
-)
-addsudo_handler = CommandHandler(
-    command=BotCommands.AddSudoCommand,
-    callback=addSudo,
-    filters=CustomFilters.owner_filter,
-    run_async=True,
-)
-removesudo_handler = CommandHandler(
-    command=BotCommands.RmSudoCommand,
-    callback=removeSudo,
-    filters=CustomFilters.owner_filter,
-    run_async=True,
-)
+send_auth_handler = CommandHandler(command=BotCommands.AuthorizedUsersCommand, callback=sendAuthChats, filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
+authorize_handler = CommandHandler(command=BotCommands.AuthorizeCommand, callback=authorize, filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
+unauthorize_handler = CommandHandler(command=BotCommands.UnAuthorizeCommand, callback=unauthorize, filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
+addsudo_handler = CommandHandler(command=BotCommands.AddSudoCommand, callback=addSudo, filters=CustomFilters.owner_filter, run_async=True)
+removesudo_handler = CommandHandler(command=BotCommands.RmSudoCommand, callback=removeSudo, filters=CustomFilters.owner_filter, run_async=True)
 
 dispatcher.add_handler(send_auth_handler)
 dispatcher.add_handler(authorize_handler)
