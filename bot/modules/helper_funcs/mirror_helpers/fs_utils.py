@@ -8,13 +8,9 @@ from json import loads as jsnloads
 from sys import exit as sysexit
 from os import remove as osremove, path as ospath, mkdir, walk, listdir, rmdir, makedirs
 
-from bot import LEECH_SPLIT_SIZE, EQUAL_SPLITS, STORAGE_THRESHOLD, IS_PREMIUM_USER, LOGGER, DOWNLOAD_DIR
+from bot import STORAGE_THRESHOLD, LOGGER, DOWNLOAD_DIR
 from bot.modules.helper_funcs.mirror_helpers.exceptions import NotSupportedExtractionArchive
 
-if IS_PREMIUM_USER:
-    MAX_SPLIT_SIZE = 4194304000
-else:
-    MAX_SPLIT_SIZE = 2097152000
 
 VIDEO_SUFFIXES = ("M4V", "MP4", "MOV", "FLV", "WMV", "3GP", "MPG", "WEBM", "MKV", "AVI")
 
@@ -154,68 +150,6 @@ def clean_download(path: str):
         except:
             pass
 
-
-def split(path, size, file_, dirpath, split_size, start_time=0, i=1, inLoop=False):
-    parts = ceil(size / LEECH_SPLIT_SIZE)
-    if EQUAL_SPLITS and not inLoop:
-        split_size = ceil(size / parts) + 1000
-    if file_.upper().endswith(VIDEO_SUFFIXES):
-        base_name, extension = ospath.splitext(file_)
-        split_size = split_size - 5000000
-        while i <= parts:
-            parted_name = "{}.part{}{}".format(
-                str(base_name), str(i).zfill(3), str(extension)
-            )
-            out_path = ospath.join(dirpath, parted_name)
-            srun(
-                [
-                    "ffmpeg",
-                    "-hide_banner",
-                    "-loglevel",
-                    "error",
-                    "-i",
-                    path,
-                    "-ss",
-                    str(start_time),
-                    "-fs",
-                    str(split_size),
-                    "-async",
-                    "1",
-                    "-strict",
-                    "-2",
-                    "-c",
-                    "copy",
-                    out_path,
-                ]
-            )
-            out_size = get_path_size(out_path)
-            if out_size > MAX_SPLIT_SIZE:
-                dif = out_size - MAX_SPLIT_SIZE
-                split_size = split_size - dif + 5000000
-                osremove(out_path)
-                return split(
-                    path, size, file_, dirpath, split_size, start_time, i, inLoop=True
-                )
-            lpd = get_media_info(out_path)[0]
-            if lpd <= 4 or out_size < 1000000:
-                osremove(out_path)
-                break
-            start_time += lpd - 3
-            i = i + 1
-    else:
-        out_path = ospath.join(dirpath, file_ + ".")
-        srun(
-            [
-                "split",
-                "--numeric-suffixes=1",
-                "--suffix-length=3",
-                f"--bytes={split_size}",
-                path,
-                out_path,
-            ]
-        )
-
-
 def check_storage_threshold(size: int, arch=False, alloc=False):
     if not alloc:
         if not arch:
@@ -312,9 +246,7 @@ def start_cleanup():
 
 def exit_clean_up(signal, frame):
     try:
-        LOGGER.info(
-            "Please wait, while we clean up the downloads and stop running downloads"
-        )
+        LOGGER.info("Please wait, while we clean up the downloads and stop running downloads")
         clean_all()
         sysexit(0)
     except KeyboardInterrupt:

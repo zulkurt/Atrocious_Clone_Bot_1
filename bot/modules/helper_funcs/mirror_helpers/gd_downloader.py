@@ -1,7 +1,7 @@
 from random import SystemRandom
 from string import ascii_letters, digits
 
-from bot import download_dict, download_dict_lock, ZIP_UNZIP_LIMIT, LOGGER, STOP_DUPLICATE, STORAGE_THRESHOLD
+from bot import download_dict, download_dict_lock, LOGGER, STOP_DUPLICATE, STORAGE_THRESHOLD
 from bot.modules.helper_funcs.mirror_helpers.gdriveTools import GoogleDriveHelper
 from bot.modules.helper_funcs.mirror_helpers.gd_download_status import GdDownloadStatus
 from bot.modules.helper_funcs.mirror_helpers.message_utils import sendMessage, sendStatusMessage, sendMarkup
@@ -27,7 +27,7 @@ def add_gd_download(link, listener, is_gdtot, is_unified, is_udrive, is_sharer, 
             if gmsg:
                 msg = "File/Folder is already available in Drive.\nHere are the search results:"
                 return sendMarkup(msg, listener.bot, listener.message, button)
-    if any([ZIP_UNZIP_LIMIT, STORAGE_THRESHOLD]):
+    if STORAGE_THRESHOLD:
         arch = any([listener.extract, listener.isZip])
         limit = None
         if STORAGE_THRESHOLD is not None:
@@ -35,16 +35,6 @@ def add_gd_download(link, listener, is_gdtot, is_unified, is_udrive, is_sharer, 
             if not acpt:
                 msg = f"You must leave {STORAGE_THRESHOLD}GB free storage."
                 msg += f"\nYour File/Folder size is {get_readable_file_size(size)}"
-                return sendMessage(msg, listener.bot, listener.message)
-        if ZIP_UNZIP_LIMIT is not None and arch:
-            mssg = f"Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB"
-            limit = ZIP_UNZIP_LIMIT
-        if limit is not None:
-            LOGGER.info("Checking File/Folder Size...")
-            if size > limit * 1024**3:
-                msg = (
-                    f"{mssg}.\nYour File/Folder size is {get_readable_file_size(size)}."
-                )
                 return sendMessage(msg, listener.bot, listener.message)
     LOGGER.info(f"Download Name: {name}")
     drive = GoogleDriveHelper(name, listener)
@@ -55,5 +45,5 @@ def add_gd_download(link, listener, is_gdtot, is_unified, is_udrive, is_sharer, 
     listener.onDownloadStart()
     sendStatusMessage(listener.message, listener.bot)
     drive.download(link,new_name)
-    if (is_gdtot or is_unified or is_udrive or is_sharer):
+    if (is_gdtot or is_unified or is_udrive or is_sharer or is_sharedrive or is_filepress):
         drive.deletefile(link)
