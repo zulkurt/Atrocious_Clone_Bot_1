@@ -54,15 +54,13 @@ status_reply_dict = {}
 # Value: An object of Status
 download_dict = {}
 # key: rss_title
-# value: [rss_feed, last_link, last_title, filter]
 rss_dict = {}
 
 AUTHORIZED_CHATS = set()
-SUDO_USERS = set()
 AS_DOC_USERS = set()
 AS_MEDIA_USERS = set()
 EXTENTION_FILTER = set()
-CHANNEL_ID = None
+SUDO_USERS = set()
 
 try:
     aid = getConfig("AUTHORIZED_CHATS")
@@ -106,12 +104,6 @@ LOGGER.info("Generating BOT_SESSION_STRING")
 app = Client(name='pyrogram', api_id=int(TELEGRAM_API), api_hash=TELEGRAM_HASH, bot_token=BOT_TOKEN, parse_mode=enums.ParseMode.HTML, no_updates=True)
 
 try:
-    AS_DOCUMENT = getConfig("AS_DOCUMENT")
-    AS_DOCUMENT = AS_DOCUMENT.lower() == "true"
-except:
-    AS_DOCUMENT = False
-
-try:
     BUTTON_FOUR_NAME = getConfig("BUTTON_FOUR_NAME")
     BUTTON_FOUR_URL = getConfig("BUTTON_FOUR_URL")
     if len(BUTTON_FOUR_NAME) == 0 or len(BUTTON_FOUR_URL) == 0:
@@ -152,13 +144,6 @@ try:
         raise KeyError
 except:
     CMD_INDEX = ""
-
-try:
-    CUSTOM_FILENAME = getConfig("CUSTOM_FILENAME")
-    if len(CUSTOM_FILENAME) == 0:
-        raise KeyError
-except:
-    CUSTOM_FILENAME = None
 
 try:
     DB_URI = getConfig("DATABASE_URL")
