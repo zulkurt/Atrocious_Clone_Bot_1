@@ -146,13 +146,6 @@ except:
     CMD_INDEX = ""
 
 try:
-    DB_URI = getConfig("DATABASE_URL")
-    if len(DB_URI) == 0:
-        raise KeyError
-except:
-    DB_URI = None
-
-try:
     DRIVEFIRE_CRYPT = getConfig("DRIVEFIRE_CRYPT")
     if len(DRIVEFIRE_CRYPT) == 0:
         raise KeyError
@@ -178,12 +171,6 @@ try:
     IGNORE_PENDING_REQUESTS = IGNORE_PENDING_REQUESTS.lower() == "true"
 except:
     IGNORE_PENDING_REQUESTS = False
-
-try:
-    INCOMPLETE_TASK_NOTIFIER = getConfig("INCOMPLETE_TASK_NOTIFIER")
-    INCOMPLETE_TASK_NOTIFIER = INCOMPLETE_TASK_NOTIFIER.lower() == "true"
-except:
-    INCOMPLETE_TASK_NOTIFIER = False
 
 try:
     INDEX_URL = getConfig("INDEX_URL").rstrip("/")

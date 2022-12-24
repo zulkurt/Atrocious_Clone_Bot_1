@@ -5,14 +5,13 @@ from signal import signal, SIGINT
 from os import path as ospath, remove as osremove, execl as osexecl
 from subprocess import run as srun, check_output
 from psutil import disk_usage, cpu_percent, swap_memory, cpu_count, virtual_memory, net_io_counters, boot_time
-from telegram import InlineKeyboardMarkup
+from telegram import InlineKeyboardMarkup, ParseMode
 from telegram.ext import CommandHandler
 
-from bot import bot, app, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, DB_URI
+from bot import bot, app, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, LOGGER, Interval, OWNER_ID, AUTHORIZED_CHATS
 from bot.modules.helper_funcs.mirror_helpers.fs_utils import start_cleanup, clean_all, exit_clean_up
 from bot.modules.helper_funcs.mirror_helpers.telegraph_helper import telegraph
 from bot.modules.helper_funcs.mirror_helpers.bot_utils import get_readable_file_size, get_readable_time
-from bot.modules.helper_funcs.mirror_helpers.db_handler import DbManger
 from bot.modules.helper_funcs.mirror_helpers.bot_commands import BotCommands
 from bot.modules.helper_funcs.mirror_helpers.message_utils import sendMessage, sendMarkup, editMessage, sendLogFile
 from bot.modules.helper_funcs.mirror_helpers.filters import CustomFilters
@@ -75,7 +74,7 @@ def start(update, context):
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         start_string = f"""
-This bot can mirror all your links to Google Drive!
+This bot can clone google drive , gdtot, hubdrive, katdrive, and filepress link and upload telegram file in google drive .
 Type /{BotCommands.HelpCommand} to get a list of available commands
 """
         sendMarkup(start_string, context.bot, update.message, reply_markup)
@@ -128,7 +127,17 @@ help_string = f"""
 
 /{BotCommands.ShellCommand}: Run commands in Shell (Only Owner)
 
-/{BotCommands.ExecHelpCommand}: Get help for Executor module (Only Owner)
+/{BotCommands.CloneCommand}: Clone google drive , gdtot, hubdrive, katdrive, and filepress file 
+
+/{BotCommands.CountCommand}: Count google drive files
+
+/{BotCommands.DeleteCommand}: Delete google drive files
+
+/{BotCommands.ListCommand}: Search files in google drive
+
+/{BotCommands.StatusCommand}: Check bot current status 
+
+/{BotCommands.StatsCommand}: Check bot stats
 """
 
 
@@ -137,42 +146,20 @@ def bot_help(update, context):
 
 
 def main():
-    # bot.set_my_commands(botcmds)
-    start_cleanup()
-    if INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-        notifier_dict = DbManger().get_incomplete_tasks()
-        if notifier_dict:
-            for cid, data in notifier_dict.items():
-                if ospath.isfile(".restartmsg"):
-                    with open(".restartmsg") as f:
-                        chat_id, msg_id = map(int, f)
-                    msg = "Restarted successfully!"
-                else:
-                    msg = "I love you Sakib. Bot Restarted!"
-                for tag, links in data.items():
-                    msg += f"\n\n{tag}: "
-                    for index, link in enumerate(links, start=1):
-                        msg += f" <a href='{link}'>{index}</a> |"
-                        if len(msg.encode()) > 4000:
-                            if "Restarted successfully!" in msg and cid == chat_id:
-                                bot.editMessageText(
-                                    msg, chat_id, msg_id, parse_mode="HTMl"
-                                )
-                                osremove(".restartmsg")
-                            else:
-                                bot.sendMessage(cid, msg, "HTML")
-                            msg = ""
-                if "Restarted successfully!" in msg and cid == chat_id:
-                    bot.editMessageText(msg, chat_id, msg_id, parse_mode="HTMl")
-                    osremove(".restartmsg")
-                else:
-                    bot.sendMessage(cid, msg, "HTML")
-
     if ospath.isfile(".restartmsg"):
         with open(".restartmsg") as f:
             chat_id, msg_id = map(int, f)
         bot.edit_message_text("Restarted successfully!", chat_id, msg_id)
         osremove(".restartmsg")
+    elif OWNER_ID:
+        try:
+            text = "<b>Bot Restarted!</b>"
+            bot.sendMessage(chat_id=OWNER_ID, text=text, parse_mode=ParseMode.HTML)
+            if AUTHORIZED_CHATS:
+                for i in AUTHORIZED_CHATS:
+                    bot.sendMessage(chat_id=i, text=text, parse_mode=ParseMode.HTML)
+        except Exception as e:
+            LOGGER.warning(e)
 
     start_handler = CommandHandler(BotCommands.StartCommand, start, run_async=True)
     ping_handler = CommandHandler(BotCommands.PingCommand, ping, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
