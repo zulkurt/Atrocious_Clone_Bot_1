@@ -11,10 +11,10 @@ from html import escape
 from telegram.ext import CommandHandler
 from telegram import InlineKeyboardMarkup
 
-from bot import Interval, INDEX_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, BUTTON_SIX_NAME, BUTTON_SIX_URL, VIEW_LINK, dispatcher, DOWNLOAD_DIR, download_dict, download_dict_lock, LEECH_SPLIT_SIZE, LOGGER, DB_URI, INCOMPLETE_TASK_NOTIFIER
+from bot import Interval, INDEX_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, BUTTON_SIX_NAME, BUTTON_SIX_URL, VIEW_LINK, dispatcher, DOWNLOAD_DIR, download_dict, download_dict_lock, LOGGER, DB_URI, INCOMPLETE_TASK_NOTIFIER
 
 from bot.modules.helper_funcs.mirror_helpers.bot_utils import is_url, is_gdtot_link, is_unified_link, is_udrive_link, is_sharer_link, is_sharedrive_link, is_filepress_link, is_gdrive_link, get_content_type
-from bot.modules.helper_funcs.mirror_helpers.fs_utils import get_base_name, get_path_size, split as fs_split, clean_download
+from bot.modules.helper_funcs.mirror_helpers.fs_utils import get_base_name, get_path_size, clean_download
 from bot.modules.helper_funcs.mirror_helpers.shortenurl import short_url
 from bot.modules.helper_funcs.mirror_helpers.exceptions import DirectDownloadLinkException, NotSupportedExtractionArchive
 from bot.modules.helper_funcs.mirror_helpers.direct_link_generator import direct_link_generator
