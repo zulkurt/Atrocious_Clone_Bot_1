@@ -272,29 +272,23 @@ try:
 except:
     XSRF_TOKEN = None
 
-if ospath.exists('accounts.zip'):
-    if ospath.exists('accounts'):
-        srun(["rm", "-rf", "accounts"])
-    srun(["unzip", "-q", "-o", "accounts.zip"])
-    srun(["chmod", "-R", "777", "accounts"])
-    osremove('accounts.zip')
+if GDRIVE_ID:
+    DRIVES_NAMES.append("Main")
+    DRIVES_IDS.append(GDRIVE_ID)
+    INDEX_URLS.append(INDEX_URL)
 
-DRIVES_NAMES.append("Main")
-DRIVES_IDS.append(GDRIVE_ID)
-if ospath.exists("drive_folder"):
-    with open("drive_folder", "r+") as f:
+if ospath.exists('list_drives.txt'):
+    with open('list_drives.txt', 'r+') as f:
         lines = f.readlines()
         for line in lines:
-            try:
-                temp = line.strip().split()
-                DRIVES_IDS.append(temp[1])
-                DRIVES_NAMES.append(temp[0].replace("_", " "))
-            except:
-                pass
-            try:
+            temp = line.strip().split()
+            DRIVES_IDS.append(temp[1])
+            DRIVES_NAMES.append(temp[0].replace("_", " "))
+            if len(temp) > 2:
                 INDEX_URLS.append(temp[2])
-            except:
-                INDEX_URLS.append(None)
+            else:
+                INDEX_URLS.append('')
+
 
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={"read_timeout": 20, "connect_timeout": 15})
 bot = updater.bot
