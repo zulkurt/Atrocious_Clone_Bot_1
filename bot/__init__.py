@@ -272,6 +272,15 @@ try:
 except:
     XSRF_TOKEN = None
 
+if ospath.exists('accounts.zip'):
+    if ospath.exists('accounts'):
+        srun(["rm", "-rf", "accounts"])
+    srun(["unzip", "-q", "-o", "accounts.zip"])
+    srun(["chmod", "-R", "777", "accounts"])
+    osremove('accounts.zip')
+if not ospath.exists('accounts'):
+    USE_SERVICE_ACCOUNTS = False
+
 if GDRIVE_ID:
     DRIVES_NAMES.append("Main")
     DRIVES_IDS.append(GDRIVE_ID)
